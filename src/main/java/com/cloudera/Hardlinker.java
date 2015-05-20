@@ -44,6 +44,9 @@ public class Hardlinker {
       for (int j = 0; i < num && j < 64; i++, j++) {
         Path subfile = p.resolve("subfile" + i);
         Files.createFile(subfile);
+        if (i % 10000 == 0) {
+          System.out.println(i + " subfiles created");
+        }
       }
     }
     System.out.println("Created " + num + " subfiles in dst " + dst);
