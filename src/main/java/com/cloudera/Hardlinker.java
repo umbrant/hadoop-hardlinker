@@ -27,11 +27,13 @@ public class Hardlinker {
     }
     Files.createDirectory(root);
     
+    final long start = Time.monotonicNow();
     // Create a subdirectory tree, where each dir has 64 subdirs and 64 files.
     // This is essentially like BFS.
     Queue<Path> queue = new LinkedList<>();
     queue.add(root);
 
+    long lastPrint = 0;
     for (int i = 0; i < num;) {
       Path p = queue.poll();
       // Create up to 64 subdirs
@@ -45,8 +47,15 @@ public class Hardlinker {
         Path subfile = p.resolve("subfile" + j);
         Files.createFile(subfile);
       }
+      if (i - lastPrint >= 10000) {
+        System.out.println("Created " + i + " items...");
+        lastPrint = i;
+      }
     }
-    System.out.println("Created " + num + " files and directories in dst " + dst);
+    final long end = Time.monotonicNow();
+    final long elapsedMillis = end - start;
+    System.out.println("Created " + num + " files and directories in " 
+        + dst + " in " + elapsedMillis + "ms");
   }
 
   public static void link(String src, String dst) throws IOException {
@@ -64,24 +73,27 @@ public class Hardlinker {
     Files.createDirectory(pdst);
     
     final long start = Time.monotonicNow();
-    final int numLinks = recursiveLink(psrc, pdst);
+    final int num = recursiveLink(psrc, pdst);
     final long end = Time.monotonicNow();
 
     final long elapsedMillis = (end - start);
-    System.out.println("Took " + elapsedMillis + " ms to create " + numLinks + " hardlinks");
+    System.out.println("Created " + num + " files and directories in "
+        + dst + " in " + elapsedMillis + "ms");
+
   }
 
   public static int recursiveLink(Path src, Path dst) {
-    int numLinks = 0;
+    int num = 0;
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(src)) {
       for (Path p : stream) {
         Path subdst = dst.resolve(p.getFileName());
         if (Files.isDirectory(p)) {
           Files.createDirectory(subdst);
-          numLinks += recursiveLink(p, subdst);
+          num++;
+          num += recursiveLink(p, subdst);
         } else if(Files.isRegularFile(p)) {
           HardLink.createHardLink(p.toFile(), subdst.toFile());
-          numLinks++;
+          num++;
         }
       }
     } catch (IOException | DirectoryIteratorException x) {
@@ -89,7 +101,7 @@ public class Hardlinker {
       // In this snippet, it can only be thrown by newDirectoryStream.
       System.err.println(x);
     }
-    return numLinks;
+    return num;
   }
 
   public static void main(String[] args) throws IOException {
