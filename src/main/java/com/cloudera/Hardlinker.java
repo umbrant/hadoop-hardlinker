@@ -6,6 +6,8 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import org.apache.hadoop.fs.HardLink;
 import org.apache.hadoop.util.Time;
@@ -19,14 +21,30 @@ public class Hardlinker {
   }
 
   public static void generate(String dst, int num) throws IOException {
-    Path p = Paths.get(dst);
-    if (Files.exists(p)) {
+    Path root = Paths.get(dst);
+    if (Files.exists(root)) {
       throw new IOException("Path " + dst + " already exists");
     }
-    Files.createDirectory(p);
-    for (int i = 0; i < num; i++) {
-      Path subfile = p.resolve("subfile" + i);
-      Files.createFile(subfile);
+    Files.createDirectory(root);
+    
+    // Create a subdirectory tree, where each dir has 64 subdirs and 64 files.
+    // This is essentially like BFS.
+    Queue<Path> queue = new LinkedList<>();
+    queue.add(root);
+
+    for (int i = 0; i < num;) {
+      Path p = queue.poll();
+      // Create 64 subdirs
+      for (int j = 0; j < 64; j++) {
+        Path subdir = p.resolve("subdir" + j);
+        Files.createDirectory(subdir);
+        queue.add(subdir);
+      }
+      // Create up to 64 files
+      for (int j = 0; i < num && j < 64; i++, j++) {
+        Path subfile = p.resolve("subfile" + i);
+        Files.createFile(subfile);
+      }
     }
     System.out.println("Created " + num + " subfiles in dst " + dst);
   }
