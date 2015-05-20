@@ -16,11 +16,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
-      <version>2.6.0-cdh5.4.0</version>
-    </dependency>
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.8.1</version>
@@ -56,14 +51,4 @@
   </build>
 
   <repositories>
-    <repository>
-      <id>maven-hadoop</id>
-      <name>Hadoop Releases</name>
-      <url>https://repository.cloudera.com/content/repositories/releases/</url>
-    </repository>
-    <repository>
-      <id>cloudera</id>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-    </repository>
-  </repositories>
 </project>

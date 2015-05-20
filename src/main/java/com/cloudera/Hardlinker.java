@@ -92,10 +92,7 @@ public class Hardlinker {
           num++;
           num += recursiveLink(p, subdst);
         } else if(Files.isRegularFile(p)) {
-          // JDK7 native hardlink API
           Files.createLink(subdst, p);
-          // This version of Hadoop still shells out to ln
-          //HardLink.createHardLink(p.toFile(), subdst.toFile());
           num++;
         }
       }
