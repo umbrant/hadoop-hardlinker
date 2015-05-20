@@ -34,22 +34,19 @@ public class Hardlinker {
 
     for (int i = 0; i < num;) {
       Path p = queue.poll();
-      // Create 64 subdirs
-      for (int j = 0; j < 64; j++) {
+      // Create up to 64 subdirs
+      for (int j = 0; i < num && j < 64; i++, j++) {
         Path subdir = p.resolve("subdir" + j);
         Files.createDirectory(subdir);
         queue.add(subdir);
       }
       // Create up to 64 files
       for (int j = 0; i < num && j < 64; i++, j++) {
-        Path subfile = p.resolve("subfile" + i);
+        Path subfile = p.resolve("subfile" + j);
         Files.createFile(subfile);
-        if (i % 10000 == 0) {
-          System.out.println(i + " subfiles created");
-        }
       }
     }
-    System.out.println("Created " + num + " subfiles in dst " + dst);
+    System.out.println("Created " + num + " files and directories in dst " + dst);
   }
 
   public static void link(String src, String dst) throws IOException {
@@ -65,24 +62,34 @@ public class Hardlinker {
     }
 
     Files.createDirectory(pdst);
+    
+    final long start = Time.monotonicNow();
+    final int numLinks = recursiveLink(psrc, pdst);
+    final long end = Time.monotonicNow();
 
-    long start = Time.monotonicNow();
+    final long elapsedMillis = (end - start);
+    System.out.println("Took " + elapsedMillis + " ms to create " + numLinks + " hardlinks");
+  }
+
+  public static int recursiveLink(Path src, Path dst) {
     int numLinks = 0;
-    try (DirectoryStream<Path> stream = Files.newDirectoryStream(psrc)) {
-      for (Path file : stream) {
-        Path dstlink = pdst.resolve(file.getFileName());
-        HardLink.createHardLink(file.toFile(), dstlink.toFile());
-        numLinks++;
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(src)) {
+      for (Path p : stream) {
+        Path subdst = dst.resolve(p.getFileName());
+        if (Files.isDirectory(p)) {
+          Files.createDirectory(subdst);
+          numLinks += recursiveLink(p, subdst);
+        } else if(Files.isRegularFile(p)) {
+          HardLink.createHardLink(p.toFile(), subdst.toFile());
+          numLinks++;
+        }
       }
     } catch (IOException | DirectoryIteratorException x) {
       // IOException can never be thrown by the iteration.
       // In this snippet, it can only be thrown by newDirectoryStream.
       System.err.println(x);
     }
-    long end = Time.monotonicNow();
-
-    long elapsedMillis = (end - start);
-    System.out.println("Took " + elapsedMillis + " to create " + numLinks + " hardlinks");
+    return numLinks;
   }
 
   public static void main(String[] args) throws IOException {
