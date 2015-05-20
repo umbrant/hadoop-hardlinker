@@ -9,10 +9,15 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import org.apache.hadoop.fs.HardLink;
-import org.apache.hadoop.util.Time;
 
 public class Hardlinker {
+
+  public static class Time {
+    public static long monotonicNow() {
+      return System.nanoTime() / 1000;
+    }
+  }
+
   public static void usage() {
     System.out.println("Supported subcommands:");
     System.out.println("  generate <dst> <num>");
