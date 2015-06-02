@@ -14,7 +14,7 @@ public class Hardlinker {
 
   public static class Time {
     public static long monotonicNow() {
-      return System.nanoTime() / 1000;
+      return System.nanoTime() / 1000 / 1000;
     }
   }
 
@@ -32,6 +32,7 @@ public class Hardlinker {
     }
     Files.createDirectory(root);
     
+    System.out.println("Starting generation...");
     final long start = Time.monotonicNow();
     // Create a subdirectory tree, where each dir has 64 subdirs and 64 files.
     // This is essentially like BFS.
@@ -77,6 +78,7 @@ public class Hardlinker {
 
     Files.createDirectory(pdst);
     
+    System.out.println("Starting recursive link...");
     final long start = Time.monotonicNow();
     final int num = recursiveLink(psrc, pdst);
     final long end = Time.monotonicNow();
