@@ -88,12 +88,13 @@ public class Hardlinker {
     private final Path srcRoot;
     private final Path dstRoot;
 
-    private final int NUM_WORKERS = 12;
-    private final ExecutorService exec = Executors.newFixedThreadPool(NUM_WORKERS);
+    private final ExecutorService exec;
 
-    public Linker(String srcRoot, String dstRoot) {
+    public Linker(String srcRoot, String dstRoot, int numThreads) {
       this.srcRoot = Paths.get(srcRoot);
       this.dstRoot = Paths.get(dstRoot);
+      exec = Executors.newFixedThreadPool(numThreads);
+      System.out.println("Using " + numThreads + " worker threads");
     }
 
     @Override
@@ -167,7 +168,7 @@ public class Hardlinker {
 
   public static void main(String[] args) throws Exception {
 
-    if (args.length != 3) {
+    if (args.length < 3) {
       usage();
     }
 
@@ -178,7 +179,11 @@ public class Hardlinker {
       new Generator(args[1], Integer.parseInt(args[2])).call();
       break;
     case "link":
-      new Linker(args[1], args[2]).call();
+      int numThreads = 12;
+      if (args.length == 4) {
+        numThreads = Integer.parseInt(args[3]);
+      }
+      new Linker(args[1], args[2], numThreads).call();
       break;
     default:
       System.err.println("Unknown subcommand");
