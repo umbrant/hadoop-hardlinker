@@ -84,9 +84,10 @@ public class Hardlinker {
     final long end = Time.monotonicNow();
 
     final long elapsedMillis = (end - start);
+    final double numPerSec = num / ((double)elapsedMillis / 1000.0f);
     System.out.println("Created " + num + " files and directories in "
         + dst + " in " + elapsedMillis + "ms");
-
+    System.out.println("Number per second: " + String.format("%.02f", numPerSec));
   }
 
   public static int recursiveLink(Path src, Path dst) {
